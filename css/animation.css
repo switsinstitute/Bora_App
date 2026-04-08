@@ -1,0 +1,40 @@
+/* Scanner Line Animation */
+.scanner-line {
+    position: absolute;
+    width: 100%;
+    height: 3px;
+    background: #39FF14;
+    box-shadow: 0 0 20px #39FF14;
+    top: 0;
+    left: 0;
+    animation: scanMove 2s ease-in-out infinite;
+}
+
+@keyframes scanMove {
+    0% { top: 0%; opacity: 0; }
+    50% { opacity: 1; }
+    100% { top: 100%; opacity: 0; }
+}
+
+/* Ad Slot Slide-in */
+.ad-overlay {
+    position: fixed;
+    bottom: -150px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 728px;
+    height: 90px;
+    background: linear-gradient(90deg, #134835, #000);
+    border: 1px solid #39FF14;
+    border-radius: 20px;
+    z-index: 1000;
+    transition: all 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ad-overlay.active {
+    bottom: 30px;
+}

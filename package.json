@@ -1,0 +1,22 @@
+{
+  "name": "bora-ai-background-remover",
+  "version": "1.0.0",
+  "description": "Professional 4K Batch AI Background Remover for SWITS Institute",
+  "main": "js/app.js",
+  "scripts": {
+    "start": "npx serve .",
+    "build": "echo 'No build step required for static hosting'"
+  },
+  "keywords": [
+    "ai",
+    "background-removal",
+    "swits",
+    "bora",
+    "batch-processing"
+  ],
+  "author": "SWITS Institute",
+  "license": "MIT",
+  "dependencies": {
+    "@imgly/background-removal": "^1.5.5"
+  }
+}
