@@ -173,6 +173,7 @@
     </div>
 
 <script>
+// --- Code Start (Sirf Script tag ka hissa replace karein) ---
 let processedFiles = {}; 
 
 const fileInput = document.getElementById('fileInput');
@@ -214,7 +215,7 @@ function renderImageCard(id, fileName, src) {
 
 async function processNeuralEngine(id) {
     const btn = document.getElementById(`btn-${id}`);
-    const badge = document.getElementById(`badge-${id}`); // FIXED HERE
+    const badge = document.getElementById(`badge-${id}`);
     const img = document.getElementById(`preview-${id}`);
     const file = window.rawFiles ? window.rawFiles[id] : null;
 
@@ -223,6 +224,7 @@ async function processNeuralEngine(id) {
     btn.disabled = true;
     btn.innerHTML = `<span class="animate-pulse">AI PROCESSING...</span>`;
     
+    // Yahan URL bilkul sahi hai
     const workerUrl = "https://patient-dream-51c0.skillswithitsolution.workers.dev/";
     const formData = new FormData();
     formData.append("image", file);
@@ -230,12 +232,23 @@ async function processNeuralEngine(id) {
     try {
         const response = await fetch(workerUrl, {
             method: "POST",
-            body: formData
+            body: formData,
+            // Mode 'cors' add kiya taake block na ho
+            mode: 'cors'
         });
 
-        if (!response.ok) throw new Error("Worker Busy");
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(errorText || "Worker Busy");
+        }
 
         const blob = await response.blob();
+        
+        // Check agar response waqai image hai
+        if (!blob.type.includes('image')) {
+            throw new Error("Invalid AI Response");
+        }
+
         const processedUrl = URL.createObjectURL(blob);
 
         btn.innerHTML = "Success ✨";
@@ -254,94 +267,13 @@ async function processNeuralEngine(id) {
         processedFiles[id] = { blob: blob, name: 'BORA-BG-' + file.name };
 
     } catch (error) {
-        console.error(error);
+        console.error("Neural Error:", error);
         btn.innerHTML = "Retry ⚠️";
         btn.disabled = false;
-        alert("Cloudflare AI is taking time. Please try again.");
+        alert("AI Engine Connection Failed. \nDetails: " + error.message);
     }
 }
-
-function handleExportClick(type) {
-    const modal = document.getElementById('infoModal');
-    const contentArea = document.getElementById('modalContent');
-    
-    let title = type === 'premium' ? 'Initializing 6K Export' : 'Standard Media Export';
-    let subtitle = type === 'premium' ? 'Optimizing Pixels for SWITS Engine' : 'Preparing Assets for Download';
-
-    contentArea.innerHTML = `
-        <div class="text-center py-6">
-            <div class="mb-8 relative inline-block">
-                <div class="w-24 h-24 border-4 border-indigo-100 rounded-[35px] flex items-center justify-center">
-                    <svg class="w-10 h-10 text-indigo-600 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"/></svg>
-                </div>
-            </div>
-            <h3 class="text-3xl font-black text-slate-900 tracking-tighter uppercase">${title}</h3>
-            <p class="text-slate-400 text-[10px] font-bold uppercase tracking-[0.2em] mt-2 mb-10 italic">${subtitle}</p>
-            <div class="w-full bg-slate-100 h-4 rounded-full overflow-hidden mb-6 border border-slate-200 p-1">
-                <div id="progressBar" class="h-full bg-indigo-600 rounded-full transition-all duration-300 ease-out" style="width: 0%"></div>
-            </div>
-            <p id="statusText" class="text-xs font-black text-indigo-600 uppercase italic">0% Optimized</p>
-        </div>
-    `;
-
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-
-    let progress = 0;
-    const interval = setInterval(() => {
-        progress += Math.random() * 15;
-        if (progress > 100) progress = 100;
-        document.getElementById('progressBar').style.width = progress + '%';
-        document.getElementById('statusText').innerText = Math.floor(progress) + '% COMPLETED';
-
-        if (progress === 100) {
-            clearInterval(interval);
-            setTimeout(() => showDownloadSuccess(type), 800);
-        }
-    }, 300);
-}
-
-function showDownloadSuccess(type) {
-    const contentArea = document.getElementById('modalContent');
-    let successTitle = type === 'premium' ? '6K Assets Ready' : 'Export Finished';
-    
-    contentArea.innerHTML = `
-        <div class="text-center py-6 animate-fade-in">
-            <div class="w-20 h-20 bg-green-100 rounded-[30px] flex items-center justify-center mx-auto mb-6 rotate-12">
-                <svg class="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
-            </div>
-            <h3 class="text-4xl font-black text-slate-900 tracking-tighter uppercase">${successTitle}</h3>
-            <p class="text-slate-500 text-sm font-medium mt-3 mb-10 leading-relaxed">Your professional assets have been prepared <br> by SWITS Research Labs.</p>
-            <button onclick="startFinalDownload()" class="btn-premium w-full py-5 rounded-[25px] font-black text-xs uppercase tracking-[0.3em] shadow-2xl">
-                Download Now
-            </button>
-        </div>
-    `;
-}
-
-function startFinalDownload() {
-    const keys = Object.keys(processedFiles);
-    if (keys.length === 0) return alert("No files processed!");
-
-    keys.forEach(id => {
-        const fileData = processedFiles[id];
-        const url = window.URL.createObjectURL(fileData.blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = fileData.name;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-    });
-    
-    setTimeout(() => { location.reload(); }, 2000);
-}
-
-function closeModal() {
-    document.getElementById('infoModal').classList.add('hidden');
-    document.getElementById('infoModal').classList.remove('flex');
-}
+// --- Code End ---
 </script>
 </body>
 </html>
