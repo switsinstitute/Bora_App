@@ -60,7 +60,7 @@ function handleFiles(files) {
 }
 
 // ==========================================
-// 3. AI PROCESSING ENGINE
+// 3. AI PROCESSING ENGINE (UPDATED TO CLIENT-SIDE)
 // ==========================================
 async function startAiProcessing(id, file) {
     const status = document.getElementById(`status-${id}`);
@@ -68,20 +68,15 @@ async function startAiProcessing(id, file) {
     const imgElement = document.getElementById(`preview-${id}`);
     const retryBtn = document.getElementById(`btn-${id}`);
 
-    const formData = new FormData();
-    formData.append("image", file);
-
     try {
-        const response = await fetch(WORKER_URL, {
-            method: "POST",
-            body: formData,
-            mode: 'cors'
-        });
+        // Step 1: Status Update
+        status.innerHTML = "NEURAL SCANNING...";
+        
+        // Step 2: Direct Background Removal (No Worker Needed)
+        // Ensure you added the imgly script tag in your HTML head
+        const blob = await imglyRemoveBackground(file); 
 
-        if (!response.ok) throw new Error("Worker Busy");
-
-        const blob = await response.blob();
-        if (!blob.type.includes('image')) throw new Error("Invalid Response");
+        if (!blob) throw new Error("Processing Failed");
 
         const processedUrl = URL.createObjectURL(blob);
 
@@ -89,27 +84,24 @@ async function startAiProcessing(id, file) {
         loader.classList.add('hidden');
         status.innerHTML = "4K READY ✨";
         status.className = "text-[8px] font-black text-green-500 uppercase";
+        
         imgElement.src = processedUrl;
         imgElement.style.opacity = "1";
+        
+        // Transparent checkerboard effect
         imgElement.parentElement.classList.add("bg-[url('https://www.transparenttextures.com/patterns/checkerboard.png')]");
         
         // Save for Export
         processedFiles[id] = blob;
-        
-        // Update Side Preview (if exists)
-        if(document.getElementById('afterImg')) {
-            document.getElementById('afterImg').style.backgroundImage = `url(${processedUrl})`;
-        }
 
     } catch (error) {
-        console.error("AI Error:", error);
+        console.error("BORA Engine Error:", error);
         status.innerHTML = "ENGINE BUSY";
         status.className = "text-[8px] font-black text-red-500 uppercase";
         loader.classList.add('hidden');
         if(retryBtn) retryBtn.classList.remove('hidden');
     }
 }
-
 // ==========================================
 // 4. EXPORT & AD-GATE SYSTEM
 // ==========================================
