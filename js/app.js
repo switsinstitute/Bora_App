@@ -226,3 +226,12 @@ try {
     console.error("FULL ERROR DETAILS:", error); // Ye console mein error dikhaye ga
     status.innerHTML = "FAILED: " + error.message;
 }
+
+const formData = new FormData();
+formData.append("image", file);
+
+const response = await fetch(WORKER_URL, {
+    method: "POST",
+    body: formData, // Browser 'Content-Type' khud hi sahi set kar leta hai
+    mode: 'cors'
+});
