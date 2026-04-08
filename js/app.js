@@ -211,3 +211,18 @@ window.closeModal = function() {
         document.body.style.overflow = 'auto';
     }
 }
+
+try {
+    status.innerHTML = "LOADING ENGINE...";
+    
+    // Yahan check karein ke library loaded hai ya nahi
+    if (typeof imglyConfigurable === 'undefined') {
+        throw new Error("Library not loaded yet! Wait 5 seconds.");
+    }
+
+    const blob = await imglyConfigurable.removeBackground(file);
+    // ... baki code
+} catch (error) {
+    console.error("FULL ERROR DETAILS:", error); // Ye console mein error dikhaye ga
+    status.innerHTML = "FAILED: " + error.message;
+}
