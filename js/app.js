@@ -146,3 +146,103 @@ function startActualDownload() {
 window.closeModal = function() {
     document.getElementById('infoModal').classList.add('hidden');
 }
+
+
+
+
+let processedFiles = {}; 
+
+const fileInput = document.getElementById('fileInput');
+const grid = document.getElementById('grid');
+const exportBtn = document.getElementById('exportBtn');
+
+fileInput.addEventListener('change', (e) => {
+    const files = Array.from(e.target.files).slice(0, 20);
+    if (files.length === 0) return;
+    handleFiles(files);
+});
+
+function handleFiles(files) {
+    if(exportBtn) {
+        exportBtn.disabled = false;
+        exportBtn.classList.remove('opacity-50');
+    }
+
+    files.forEach(file => {
+        const id = 'img-' + Math.random().toString(36).substr(2, 9);
+        const card = document.createElement('div');
+        card.id = id;
+        card.className = "deep-card p-4 rounded-[35px] group relative animate-fade-in border border-slate-100";
+        card.innerHTML = `
+            <div class="relative aspect-square rounded-[25px] overflow-hidden bg-slate-50 border border-slate-100">
+                <img id="preview-${id}" class="w-full h-full object-cover opacity-60">
+                <div id="loader-${id}" class="absolute inset-0 flex items-center justify-center bg-white/40 backdrop-blur-sm">
+                    <div class="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+                </div>
+            </div>
+            <div class="mt-3 flex justify-between items-center">
+                <p class="text-[9px] font-bold text-slate-400 uppercase truncate w-24">${file.name}</p>
+                <span id="status-${id}" class="text-[8px] font-black text-indigo-600 uppercase">Processing</span>
+            </div>
+        `;
+        grid.appendChild(card);
+
+        const reader = new FileReader();
+        reader.onload = async (ev) => {
+            document.getElementById(`preview-${id}`).src = ev.target.result;
+            
+            // AI PROCESSING START
+            try {
+                const status = document.getElementById(`status-${id}`);
+                const loader = document.getElementById(`loader-${id}`);
+                const imgElement = document.getElementById(`preview-${id}`);
+
+                // Direct Browser-based AI
+                const blob = await imglyConfigurable.removeBackground(file);
+                const processedUrl = URL.createObjectURL(blob);
+
+                loader.classList.add('hidden');
+                status.innerHTML = "4K READY ✨";
+                status.className = "text-[8px] font-black text-green-500 uppercase";
+                imgElement.src = processedUrl;
+                imgElement.style.opacity = "1";
+                imgElement.parentElement.classList.add("bg-[url('https://www.transparenttextures.com/patterns/checkerboard.png')]");
+                
+                processedFiles[id] = blob;
+            } catch (err) {
+                console.error(err);
+                document.getElementById(`status-${id}`).innerText = "FAILED";
+            }
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+// AD-GATE & DOWNLOAD logic wahi rahegi jo aapne banayi thi
+if(exportBtn) {
+    exportBtn.addEventListener('click', () => {
+        document.getElementById('infoModal').classList.remove('hidden');
+        document.getElementById('infoModal').classList.add('flex');
+        setTimeout(renderDownloadBtn, 2000);
+    });
+}
+
+function renderDownloadBtn() {
+    document.getElementById('modalContent').innerHTML = `
+        <div class="text-center py-10">
+            <h3 class="text-2xl font-black mb-6 uppercase">Assets Secured</h3>
+            <button onclick="startActualDownload()" class="bg-indigo-600 text-white px-8 py-4 rounded-xl font-bold uppercase text-xs">Download All</button>
+        </div>
+    `;
+}
+
+function startActualDownload() {
+    Object.keys(processedFiles).forEach((id, index) => {
+        const url = URL.createObjectURL(processedFiles[id]);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `BORA-AI-${index + 1}.png`;
+        a.click();
+    });
+    location.reload(); // Refresh to clear
+}
